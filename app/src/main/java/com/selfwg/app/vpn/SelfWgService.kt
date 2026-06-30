@@ -26,10 +26,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Vordergrund-Dienst: haelt den Prozess wach und betreibt den Reconnect-
- * Waechter. Kernidee: regelmaessig pruefen, ob die Heim-IP des Servers
+ * Vordergrund-Dienst: hält den Prozess wach und betreibt den Reconnect-
+ * Wächter. Kernidee: regelmäßig prüfen, ob die Heim-IP des Servers
  * gewechselt hat (Zwangstrennung) und dann den Tunnel mit frischer IP neu
- * aufbauen. Zusaetzlich ein Doze-Weckalarm (ueber [AlarmReceiver]) als
+ * aufbauen. Zusätzlich ein Doze-Weckalarm (über [AlarmReceiver]) als
  * Sicherheitsnetz.
  */
 class SelfWgService : Service() {

@@ -34,7 +34,7 @@ class MainActivity : FragmentActivity() {
 
     private val notifPermLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* Service laeuft auch ohne sichtbare Notification weiter. */ }
+    ) { /* Service läuft auch ohne sichtbare Notification weiter. */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +58,8 @@ class MainActivity : FragmentActivity() {
         if (Prefs.biometricEnabled(this)) promptBiometric()
     }
 
-    // Beim Verlassen sperren, bei echter Rueckkehr neu entsperren (nicht beim
-    // System-Biometrie-Dialog, der loest kein onRestart aus).
+    // Beim Verlassen sperren, bei echter Rückkehr neu entsperren (nicht beim
+    // System-Biometrie-Dialog, der löst kein onRestart aus).
     override fun onStop() {
         super.onStop()
         if (Prefs.biometricEnabled(this)) authed.value = false
@@ -114,7 +114,7 @@ class MainActivity : FragmentActivity() {
         )
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle("SelfWG entsperren")
-            .setSubtitle("Mit Fingerabdruck oder Geraetesperre bestaetigen")
+            .setSubtitle("Mit Fingerabdruck oder Gerätesperre bestätigen")
             .setAllowedAuthenticators(auths)
             .build()
         prompt.authenticate(info)

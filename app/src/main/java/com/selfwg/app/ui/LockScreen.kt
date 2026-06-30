@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Sperrbildschirm vor dem Entsperren per Fingerabdruck/Geraetesperre. */
+/** Sperrbildschirm vor dem Entsperren per Fingerabdruck/Gerätesperre. */
 @Composable
 fun LockScreen(onUnlock: () -> Unit) {
     Box(

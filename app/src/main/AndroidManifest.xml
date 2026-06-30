@@ -11,8 +11,8 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
-    <!-- Nur startbare Apps sichtbar machen (fuer die App-Auswahl im Split-Tunnel) -
-         kein QUERY_ALL_PACKAGES -> kein Play-Protect-Aerger. -->
+    <!-- Nur startbare Apps sichtbar machen (für die App-Auswahl im Split-Tunnel) -
+         kein QUERY_ALL_PACKAGES -> kein Play-Protect-Ärger. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -49,8 +49,8 @@
             </intent-filter>
         </service>
 
-        <!-- Eigener Vordergrund-Dienst: haelt den Prozess wach und betreibt den
-             Reconnect-Waechter (auch wenn das Display aus ist). -->
+        <!-- Eigener Vordergrund-Dienst: hält den Prozess wach und betreibt den
+             Reconnect-Wächter (auch wenn das Display aus ist). -->
         <service
             android:name=".vpn.SelfWgService"
             android:exported="false"
@@ -65,7 +65,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Empfaengt den Doze-Weckalarm des Waechters. -->
+        <!-- Empfängt den Doze-Weckalarm des Wächters. -->
         <receiver
             android:name=".vpn.AlarmReceiver"
             android:exported="false" />

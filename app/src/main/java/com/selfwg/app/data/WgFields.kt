@@ -3,8 +3,8 @@ package com.selfwg.app.data
 /**
  * Wandelt zwischen WireGuard-Config-Text und einzelnen Feldern hin und her,
  * damit der Editor beschriftete Felder statt eines Rohtext-Blocks zeigen kann.
- * Deckt die ueblichen WG-Easy-Felder ab; unbekannte Zeilen werden beim
- * Neu-Erzeugen weggelassen (fuer Standard-Configs unkritisch).
+ * Deckt die üblichen WG-Easy-Felder ab; unbekannte Zeilen werden beim
+ * Neu-Erzeugen weggelassen (für Standard-Configs unkritisch).
  */
 object WgFields {
 

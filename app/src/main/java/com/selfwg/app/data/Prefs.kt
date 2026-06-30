@@ -7,17 +7,17 @@ object Prefs {
     private const val FILE = "selfwg_prefs"
     private fun p(ctx: Context) = ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
-    /** Soll der Tunnel an sein? (ueberlebt Neustart/Prozess-Kill) */
+    /** Soll der Tunnel an sein? (überlebt Neustart/Prozess-Kill) */
     fun isIntendedUp(ctx: Context): Boolean = p(ctx).getBoolean("intended_up", false)
     fun setIntendedUp(ctx: Context, value: Boolean) =
         p(ctx).edit().putBoolean("intended_up", value).apply()
 
-    /** Nach Geraete-Neustart automatisch verbinden. */
+    /** Nach Geräte-Neustart automatisch verbinden. */
     fun autoConnectOnBoot(ctx: Context): Boolean = p(ctx).getBoolean("auto_boot", true)
     fun setAutoConnectOnBoot(ctx: Context, value: Boolean) =
         p(ctx).edit().putBoolean("auto_boot", value).apply()
 
-    /** App beim Start mit Fingerabdruck/Geraetesperre schuetzen. */
+    /** App beim Start mit Fingerabdruck/Gerätesperre schützen. */
     fun biometricEnabled(ctx: Context): Boolean = p(ctx).getBoolean("biometric", false)
     fun setBiometricEnabled(ctx: Context, value: Boolean) =
         p(ctx).edit().putBoolean("biometric", value).apply()

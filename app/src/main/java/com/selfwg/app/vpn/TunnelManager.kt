@@ -19,9 +19,9 @@ import java.net.InetAddress
 
 /**
  * Verwaltet das WireGuard-Backend (GoBackend aus com.wireguard.android:tunnel).
- * Single source of truth fuer den Tunnel-Zustand.
+ * Single source of truth für den Tunnel-Zustand.
  *
- * Alle nativen Operationen laufen serialisiert ueber [opMutex] — der native
+ * Alle nativen Operationen laufen serialisiert über [opMutex] — der native
  * Kern darf NICHT von zwei Threads gleichzeitig angefasst werden.
  */
 object TunnelManager {
@@ -38,7 +38,7 @@ object TunnelManager {
     private val _serverIp = MutableStateFlow<String?>(null)
     val serverIp: StateFlow<String?> = _serverIp.asStateFlow()
 
-    /** IP, mit der der Tunnel zuletzt aufgebaut wurde (fuer Wechsel-Erkennung). */
+    /** IP, mit der der Tunnel zuletzt aufgebaut wurde (für Wechsel-Erkennung). */
     @Volatile
     var lastAppliedIp: String? = null
         private set
@@ -73,7 +73,7 @@ object TunnelManager {
     private fun rawUp(config: Config) {
         val b = backend ?: return
         b.setState(tunnel, Tunnel.State.UP, config)
-        // _state wird ueber onStateChange gesetzt (einziger Schreiber).
+        // _state wird über onStateChange gesetzt (einziger Schreiber).
         val ip = resolveBlocking(config)
         lastAppliedIp = ip
         _serverIp.value = ip
@@ -85,11 +85,11 @@ object TunnelManager {
             // GoBackend benutzt config beim DOWN nicht; null ist hier ok.
             b.setState(tunnel, Tunnel.State.DOWN, config)
         } catch (e: Exception) {
-            // bereits unten / kein gueltiger Zustand -> ignorieren
+            // bereits unten / kein gültiger Zustand -> ignorieren
         }
     }
 
-    /** Frische, abbruchbare DNS-Aufloesung mit Timeout (fuer den Waechter). */
+    /** Frische, abbruchbare DNS-Auflösung mit Timeout (für den Wächter). */
     suspend fun resolveFresh(config: Config): String? = withTimeoutOrNull(5_000) {
         runInterruptible(Dispatchers.IO) { resolveBlocking(config) }
     }

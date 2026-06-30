@@ -340,7 +340,7 @@ fun AppScreen(
         )
     }
 
-    // Vollbild-Editor (ueberlagert alles)
+    // Vollbild-Editor (überlagert alles)
     editing?.let { entry ->
         EditTunnelScreen(
             entry = entry,

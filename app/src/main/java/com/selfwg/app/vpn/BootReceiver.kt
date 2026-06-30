@@ -6,7 +6,7 @@ import android.content.Intent
 import com.selfwg.app.data.Prefs
 import com.selfwg.app.data.TunnelStore
 
-/** Verbindet nach Geraete-Neustart automatisch, wenn gewuenscht. */
+/** Verbindet nach Geräte-Neustart automatisch, wenn gewünscht. */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return

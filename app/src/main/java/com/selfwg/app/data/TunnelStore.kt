@@ -13,8 +13,8 @@ import java.util.UUID
 
 /**
  * Ein gespeicherter Tunnel/„Konto".
- * @param appMode "all" = alle Apps, "include" = nur diese, "exclude" = alle ausser diese
- * @param apps Paketnamen fuer Split-Tunnel nach App
+ * @param appMode "all" = alle Apps, "include" = nur diese, "exclude" = alle außer diese
+ * @param apps Paketnamen für Split-Tunnel nach App
  */
 data class TunnelEntry(
     val id: String,
@@ -25,7 +25,7 @@ data class TunnelEntry(
 )
 
 /**
- * Verschluesselter Mehrfach-Tunnel-Speicher. Genau ein Tunnel ist „aktiv".
+ * Verschlüsselter Mehrfach-Tunnel-Speicher. Genau ein Tunnel ist „aktiv".
  */
 object TunnelStore {
     private const val FILE = "selfwg_secure"

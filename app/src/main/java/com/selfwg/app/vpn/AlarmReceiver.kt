@@ -6,10 +6,10 @@ import android.content.Intent
 import com.selfwg.app.data.Prefs
 
 /**
- * Empfaengt den Doze-Weckalarm. Ein BroadcastReceiver bekommt beim Aufwachen
+ * Empfängt den Doze-Weckalarm. Ein BroadcastReceiver bekommt beim Aufwachen
  * ein kurzes Zeitfenster, in dem er einen Vordergrund-Dienst starten darf —
  * im Gegensatz zu einem direkt vom AlarmManager gestarteten Dienst, der unter
- * Android 12+ blockiert wuerde.
+ * Android 12+ blockiert würde.
  */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {

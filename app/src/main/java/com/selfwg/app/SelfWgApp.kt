@@ -10,12 +10,12 @@ class SelfWgApp : Application() {
     override fun onCreate() {
         super.onCreate()
         // Hinweis: Android nutzt den nativen netd-Resolver; die frische
-        // Aufloesung im Waechter geht ueber InetAddress mit kurzem Timeout und
+        // Auflösung im Wächter geht über InetAddress mit kurzem Timeout und
         // greift, sobald der DDNS-Eintrag (niedrige TTL) den IP-Wechsel zeigt.
         TunnelManager.init(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = getSystemService(NotificationManager::class.java)
-            // Alten Kanal (mit Badge) aufraeumen.
+            // Alten Kanal (mit Badge) aufräumen.
             runCatching { nm.deleteNotificationChannel("selfwg_status") }
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -30,7 +30,7 @@ class SelfWgApp : Application() {
 
     companion object {
         // Neue ID, damit setShowBadge(false) auch bei bestehenden Installationen greift
-        // (Kanal-Einstellungen sind nach dem Anlegen unveraenderlich).
+        // (Kanal-Einstellungen sind nach dem Anlegen unveränderlich).
         const val CHANNEL_ID = "selfwg_status2"
     }
 }
