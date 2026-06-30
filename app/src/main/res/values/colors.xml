@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="self_teal">#19C3B1</color>
+    <color name="self_teal_dark">#0E8C80</color>
+    <color name="self_bg">#0E1413</color>
+    <color name="self_surface">#16201E</color>
+    <color name="self_on">#E6F2F0</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

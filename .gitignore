@@ -1,0 +1,17 @@
+# Build
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+
+# Local config / secrets
+local.properties
+keystore.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+.DS_Store
