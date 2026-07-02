@@ -1,6 +1,7 @@
 package com.selfwg.app.vpn
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
@@ -36,6 +37,10 @@ class SelfWgService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var watchJob: Job? = null
+
+    /** Anzahl aufeinanderfolgender fehlgeschlagener Verbindungsversuche. */
+    @Volatile
+    private var failureCount = 0
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -79,21 +84,42 @@ class SelfWgService : Service() {
         if (watchJob?.isActive == true) return
         watchJob = scope.launch {
             while (isActive) {
-                delay(CHECK_INTERVAL_MS)
+                // Bei wiederholtem Fehlschlag exponentiell länger warten,
+                // sonst normales Prüfintervall.
+                delay(nextDelayMs())
                 runCatching { watchTick() }
             }
         }
     }
 
-    /** Kernlogik: Tunnel tot oder neue Server-IP? -> neu aufbauen. */
+    /** Wartezeit bis zum nächsten Versuch: normal, oder Backoff bei Fehlern. */
+    private fun nextDelayMs(): Long {
+        if (failureCount <= 0) return CHECK_INTERVAL_MS
+        val idx = (failureCount - 1).coerceAtMost(BACKOFF_STEPS_MS.lastIndex)
+        return BACKOFF_STEPS_MS[idx]
+    }
+
+    /**
+     * Kernlogik: Tunnel tot oder neue Server-IP? -> neu aufbauen.
+     * Zählt Fehlversuche für den Backoff und zeigt bei anhaltendem Fehlschlag
+     * einen Hinweis in der Vordergrund-Notification.
+     */
     private suspend fun watchTick() {
         if (!Prefs.isIntendedUp(this)) return
         val cfg = runCatching { TunnelStore.activeConfig(this) }.getOrNull() ?: return
 
         if (TunnelManager.currentState() != Tunnel.State.UP) {
             runCatching { TunnelManager.up(cfg) }
+            if (TunnelManager.currentState() == Tunnel.State.UP) {
+                onConnectSuccess()
+            } else {
+                onConnectFailure()
+            }
             return
         }
+
+        // Tunnel ist oben -> als Erfolg werten (Zähler/Notification zurücksetzen).
+        onConnectSuccess()
 
         val newIp = TunnelManager.resolveFresh(cfg) ?: return
         val applied = TunnelManager.lastAppliedIp
@@ -101,6 +127,18 @@ class SelfWgService : Service() {
             // Heim-IP hat gewechselt -> Tunnel mit frischer IP neu aufbauen.
             runCatching { TunnelManager.reconnect(cfg) }
         }
+    }
+
+    private fun onConnectSuccess() {
+        if (failureCount != 0) {
+            failureCount = 0
+            updateNotification(failed = false)
+        }
+    }
+
+    private fun onConnectFailure() {
+        failureCount++
+        updateNotification(failed = true)
     }
 
     private fun stopEverything() {
@@ -129,11 +167,11 @@ class SelfWgService : Service() {
         }
     }
 
-    private fun buildNotification() =
+    private fun buildNotification(failed: Boolean = false) =
         NotificationCompat.Builder(this, SelfWgApp.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_vpn)
             .setContentTitle(getString(R.string.notif_title))
-            .setContentText(getString(R.string.notif_text))
+            .setContentText(notificationText(failed))
             .setOngoing(true)
             .setContentIntent(
                 PendingIntent.getActivity(
@@ -143,6 +181,22 @@ class SelfWgService : Service() {
                 )
             )
             .build()
+
+    /** Normaler Status oder Fehlschlag-Hinweis inkl. Wartezeit bis zum Retry. */
+    private fun notificationText(failed: Boolean): String =
+        if (failed) {
+            val minutes = (nextDelayMs() / 60_000L).coerceAtLeast(1)
+            getString(R.string.notif_retry, minutes)
+        } else {
+            getString(R.string.notif_text)
+        }
+
+    private fun updateNotification(failed: Boolean) {
+        runCatching {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.notify(NOTIF_ID, buildNotification(failed))
+        }
+    }
 
     private fun scheduleAlarm() {
         val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -180,6 +234,11 @@ class SelfWgService : Service() {
         private const val NOTIF_ID = 4711
         private const val CHECK_INTERVAL_MS = 60_000L
         private const val ALARM_INTERVAL_MS = 15 * 60_000L
+
+        // Exponentieller Backoff bei wiederholtem Verbindungsfehler: 1/2/5/15 min.
+        private val BACKOFF_STEPS_MS = longArrayOf(
+            1 * 60_000L, 2 * 60_000L, 5 * 60_000L, 15 * 60_000L
+        )
 
         fun start(ctx: Context) {
             val i = Intent(ctx, SelfWgService::class.java).setAction(ACTION_START)

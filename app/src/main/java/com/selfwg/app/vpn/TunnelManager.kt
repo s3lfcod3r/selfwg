@@ -38,13 +38,28 @@ object TunnelManager {
     private val _serverIp = MutableStateFlow<String?>(null)
     val serverIp: StateFlow<String?> = _serverIp.asStateFlow()
 
+    /**
+     * Letzter Fehlerzustand für die UI. null = alles ok. Wird gesetzt, wenn das
+     * native Backend nicht verfügbar ist oder eine Operation ins Timeout läuft.
+     */
+    private val _lastError = MutableStateFlow<TunnelError?>(null)
+    val lastError: StateFlow<TunnelError?> = _lastError.asStateFlow()
+
     /** IP, mit der der Tunnel zuletzt aufgebaut wurde (für Wechsel-Erkennung). */
     @Volatile
     var lastAppliedIp: String? = null
         private set
 
     fun init(ctx: Context) {
-        if (backend == null) backend = GoBackend(ctx.applicationContext)
+        if (backend != null) return
+        try {
+            backend = GoBackend(ctx.applicationContext)
+            if (_lastError.value == TunnelError.BACKEND_UNAVAILABLE) _lastError.value = null
+        } catch (e: Throwable) {
+            // Fehlende/inkompatible libwg-go.so o. Ä. -> Backend bleibt null.
+            android.util.Log.e(TAG, "GoBackend init failed", e)
+            _lastError.value = TunnelError.BACKEND_UNAVAILABLE
+        }
     }
 
     fun currentState(): Tunnel.State = try {
@@ -54,29 +69,57 @@ object TunnelManager {
     }
 
     suspend fun up(config: Config) = withContext(Dispatchers.IO) {
-        opMutex.withLock { rawUp(config) }
+        opMutex.withLock {
+            // Timeout, damit ein hängender nativer Aufruf nicht opMutex dauerhaft blockiert.
+            val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
+                runInterruptible { rawUp(config) }
+                true
+            }
+            if (ok == null) onOpTimeout("up")
+        }
     }
 
     suspend fun down(config: Config?) = withContext(Dispatchers.IO) {
-        opMutex.withLock { rawDown(config) }
+        opMutex.withLock {
+            val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
+                runInterruptible { rawDown(config) }
+                true
+            }
+            if (ok == null) onOpTimeout("down")
+        }
     }
 
     /** Tunnel komplett neu aufbauen (z.B. nach Server-IP-Wechsel). Atomar. */
     suspend fun reconnect(config: Config) = withContext(Dispatchers.IO) {
         opMutex.withLock {
-            rawDown(config)
-            delay(400)
-            rawUp(config)
+            val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
+                runInterruptible { rawDown(config) }
+                delay(400)
+                runInterruptible { rawUp(config) }
+                true
+            }
+            if (ok == null) onOpTimeout("reconnect")
         }
     }
 
+    private fun onOpTimeout(op: String) {
+        android.util.Log.e(TAG, "Tunnel operation timed out: $op")
+        _lastError.value = TunnelError.OP_TIMEOUT
+    }
+
     private fun rawUp(config: Config) {
-        val b = backend ?: return
+        val b = backend
+        if (b == null) {
+            _lastError.value = TunnelError.BACKEND_UNAVAILABLE
+            return
+        }
         b.setState(tunnel, Tunnel.State.UP, config)
         // _state wird über onStateChange gesetzt (einziger Schreiber).
         val ip = resolveBlocking(config)
         lastAppliedIp = ip
         _serverIp.value = ip
+        // Erfolg -> vorherigen Betriebsfehler löschen (Backend-Fehler bleibt).
+        if (_lastError.value == TunnelError.OP_TIMEOUT) _lastError.value = null
     }
 
     private fun rawDown(config: Config?) {
@@ -100,4 +143,19 @@ object TunnelManager {
     } catch (e: Exception) {
         null
     }
+
+    private const val TAG = "TunnelManager"
+
+    // Deckel für native JNI-Operationen. Der native Kern kann in seltenen
+    // Fällen hängen; ohne Deckel würde opMutex dauerhaft blockiert.
+    private const val OP_TIMEOUT_MS = 20_000L
+}
+
+/** Für die UI sichtbarer Fehlerzustand des Tunnel-Backends. */
+enum class TunnelError {
+    /** Natives VPN-Backend (libwg-go.so) fehlt oder ließ sich nicht laden. */
+    BACKEND_UNAVAILABLE,
+
+    /** Eine Tunnel-Operation lief ins Timeout (nativer Aufruf hing). */
+    OP_TIMEOUT,
 }

@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -50,11 +50,17 @@
         </service>
 
         <!-- Eigener Vordergrund-Dienst: hält den Prozess wach und betreibt den
-             Reconnect-Wächter (auch wenn das Display aus ist). -->
+             Reconnect-Wächter (auch wenn das Display aus ist). Typ "specialUse",
+             weil ein dauerhafter VPN-/Reconnect-Wächter unter keinen der zeitlich
+             begrenzten Standardtypen (z. B. dataSync ~6h/24h) fällt. -->
         <service
             android:name=".vpn.SelfWgService"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn watchdog / auto-reconnect" />
+        </service>
 
         <!-- Optional: nach Neustart automatisch verbinden. -->
         <receiver

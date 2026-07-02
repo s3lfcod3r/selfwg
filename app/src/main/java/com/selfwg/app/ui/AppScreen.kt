@@ -1,6 +1,7 @@
 package com.selfwg.app.ui
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,9 +61,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.selfwg.app.BuildConfig
 import com.selfwg.app.data.Prefs
 import com.selfwg.app.data.TunnelEntry
 import com.selfwg.app.data.TunnelStore
+import com.selfwg.app.vpn.TunnelError
 import com.selfwg.app.vpn.TunnelManager
 import com.wireguard.android.backend.Tunnel
 import java.io.ByteArrayOutputStream
@@ -82,6 +85,7 @@ fun AppScreen(
 
     val state by TunnelManager.state.collectAsStateWithLifecycle()
     val serverIp by TunnelManager.serverIp.collectAsStateWithLifecycle()
+    val lastError by TunnelManager.lastError.collectAsStateWithLifecycle()
 
     var tunnels by remember { mutableStateOf(TunnelStore.list(context)) }
     var activeId by remember { mutableStateOf(TunnelStore.activeId(context)) }
@@ -127,7 +131,9 @@ fun AppScreen(
             }.onSuccess { bytes ->
                 if (bytes == null) Toast.makeText(context, s.tFileTooBig, Toast.LENGTH_LONG).show()
                 else importText(bytes.decodeToString())
-            }.onFailure {
+            }.onFailure { e ->
+                // Nur im Debug-Build den Stacktrace loggen — niemals Config-Inhalte.
+                if (BuildConfig.DEBUG) Log.w("SelfWG", "Config-Import fehlgeschlagen", e)
                 Toast.makeText(context, s.tFileError, Toast.LENGTH_LONG).show()
             }
         }
@@ -158,7 +164,7 @@ fun AppScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatusCard(s, state, desiredOn, serverIp, activeTunnel?.name)
+            StatusCard(s, state, desiredOn, serverIp, activeTunnel?.name, lastError)
 
             if (activeTunnel != null) {
                 ConnectRow(
@@ -359,7 +365,14 @@ fun AppScreen(
 }
 
 @Composable
-private fun StatusCard(s: Strings, state: Tunnel.State, desiredOn: Boolean, serverIp: String?, activeName: String?) {
+private fun StatusCard(
+    s: Strings,
+    state: Tunnel.State,
+    desiredOn: Boolean,
+    serverIp: String?,
+    activeName: String?,
+    error: TunnelError?
+) {
     val connected = state == Tunnel.State.UP
     val statusText = when {
         connected -> s.connected
@@ -384,6 +397,14 @@ private fun StatusCard(s: Strings, state: Tunnel.State, desiredOn: Boolean, serv
             }
             Text("${s.tunnelLabel}: ${activeName ?: "—"}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${s.serverLabel}: ${serverIp ?: "—"}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val errorText = when (error) {
+                TunnelError.BACKEND_UNAVAILABLE -> s.errBackendUnavailable
+                TunnelError.OP_TIMEOUT -> s.errOpTimeout
+                null -> null
+            }
+            if (errorText != null) {
+                Text(errorText, fontSize = 13.sp, color = Color(0xFFE5746B))
+            }
         }
     }
 }

@@ -4,4 +4,5 @@
     <string name="notif_channel">SelfWG Status</string>
     <string name="notif_title">SelfWG aktiv</string>
     <string name="notif_text">Verbindung wird überwacht</string>
+    <string name="notif_retry">Verbindung fehlgeschlagen – neuer Versuch in %1$d Min.</string>
 </resources>
