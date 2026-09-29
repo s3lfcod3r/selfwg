@@ -2,9 +2,12 @@ package com.selfwg.app.vpn
 
 import android.content.Context
 import com.wireguard.android.backend.Backend
+import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
+import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +48,10 @@ object TunnelManager {
     private val _lastError = MutableStateFlow<TunnelError?>(null)
     val lastError: StateFlow<TunnelError?> = _lastError.asStateFlow()
 
+    /** Kurze Fehlerart zu CONNECT_FAILED (Klassenname oder Backend-/BadConfig-Reason). */
+    private val _failureDetail = MutableStateFlow<String?>(null)
+    val failureDetail: StateFlow<String?> = _failureDetail.asStateFlow()
+
     /** IP, mit der der Tunnel zuletzt aufgebaut wurde (für Wechsel-Erkennung). */
     @Volatile
     var lastAppliedIp: String? = null
@@ -72,7 +79,15 @@ object TunnelManager {
         opMutex.withLock {
             // Timeout, damit ein hängender nativer Aufruf nicht opMutex dauerhaft blockiert.
             val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
-                runInterruptible { rawUp(config) }
+                runInterruptible {
+                    try {
+                        rawUp(config)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        connectFailed(shortFailureDetail(e))
+                    }
+                }
                 true
             }
             if (ok == null) onOpTimeout("up")
@@ -93,9 +108,17 @@ object TunnelManager {
     suspend fun reconnect(config: Config) = withContext(Dispatchers.IO) {
         opMutex.withLock {
             val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
-                runInterruptible { rawDown(config) }
-                delay(400)
-                runInterruptible { rawUp(config) }
+                runInterruptible {
+                    try {
+                        rawDown(config)
+                        delay(400)
+                        rawUp(config)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        connectFailed(shortFailureDetail(e))
+                    }
+                }
                 true
             }
             if (ok == null) onOpTimeout("reconnect")
@@ -105,6 +128,21 @@ object TunnelManager {
     private fun onOpTimeout(op: String) {
         android.util.Log.e(TAG, "Tunnel operation timed out: $op")
         _lastError.value = TunnelError.OP_TIMEOUT
+        _failureDetail.value = null
+    }
+
+    /** Setzt den CONNECT_FAILED-Zustand (auch von außen, z. B. bei Parse-Fehlern). */
+    fun connectFailed(detail: String) {
+        _lastError.value = TunnelError.CONNECT_FAILED
+        _failureDetail.value = detail
+    }
+
+    /** Kurze, UI-taugliche Fehlerart: nur Klassenname oder Backend-/BadConfig-Reason.
+     * Keine Config-Inhalte oder Schlüssel. */
+    fun shortFailureDetail(e: Exception): String = when (e) {
+        is BackendException -> e.reason
+        is BadConfigException -> "${e.section} (${e.location}): ${e.reason}"
+        else -> e::class.simpleName ?: "Fehler"
     }
 
     private fun rawUp(config: Config) {
@@ -118,8 +156,11 @@ object TunnelManager {
         val ip = resolveBlocking(config)
         lastAppliedIp = ip
         _serverIp.value = ip
-        // Erfolg -> vorherigen Betriebsfehler löschen (Backend-Fehler bleibt).
-        if (_lastError.value == TunnelError.OP_TIMEOUT) _lastError.value = null
+        // Erfolg -> vorherige Betriebsfehler löschen (Backend-Fehler bleibt).
+        if (_lastError.value == TunnelError.OP_TIMEOUT || _lastError.value == TunnelError.CONNECT_FAILED) {
+            _lastError.value = null
+            _failureDetail.value = null
+        }
     }
 
     private fun rawDown(config: Config?) {
@@ -158,4 +199,7 @@ enum class TunnelError {
 
     /** Eine Tunnel-Operation lief ins Timeout (nativer Aufruf hing). */
     OP_TIMEOUT,
+
+    /** Aufbauen/Reconnect ist fehlgeschlagen (z. B. Backend- oder Parse-Fehler). */
+    CONNECT_FAILED,
 }
