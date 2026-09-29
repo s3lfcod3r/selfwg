@@ -24,6 +24,8 @@ class MainActivity : FragmentActivity() {
     private var onVpnGranted: (() -> Unit)? = null
     private val authed = mutableStateOf(false)
     private var prompting = false
+    // true, wenn keine Geräte-/Fingerabdruck-Sperre eingerichtet ist.
+    private val noDeviceLock = mutableStateOf(false)
 
     private val vpnPermLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -45,7 +47,7 @@ class MainActivity : FragmentActivity() {
             SelfWgTheme {
                 val locked = Prefs.biometricEnabled(this) && !authed.value
                 if (locked) {
-                    LockScreen(onUnlock = { promptBiometric() })
+                    LockScreen(noDeviceLock = noDeviceLock.value, onUnlock = { promptBiometric() })
                 } else {
                     AppScreen(
                         onConnect = { connect() },
@@ -92,11 +94,14 @@ class MainActivity : FragmentActivity() {
     private fun promptBiometric() {
         if (prompting) return
         val auths = allowedAuthenticators()
-        if (BiometricManager.from(this).canAuthenticate(auths) != BiometricManager.BIOMETRIC_SUCCESS) {
-            // Nichts eingerichtet -> Nutzer nicht aussperren.
-            authed.value = true
+        val success = BiometricManager.from(this).canAuthenticate(auths) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+        if (!success) {
+            // Keine Geräte-/Fingerabdruck-Sperre -> App bleibt gesperrt, Hinweis zeigen.
+            noDeviceLock.value = true
             return
         }
+        noDeviceLock.value = false
         prompting = true
         val prompt = BiometricPrompt(
             this,

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 
 /** Sperrbildschirm vor dem Entsperren per Fingerabdruck/Gerätesperre. */
 @Composable
-fun LockScreen(onUnlock: () -> Unit) {
+fun LockScreen(noDeviceLock: Boolean, onUnlock: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,6 +46,14 @@ fun LockScreen(onUnlock: () -> Unit) {
                 "Gesperrt – zum Fortfahren entsperren",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (noDeviceLock) {
+                Text(
+                    "Keine Gerätesperre eingerichtet. In den Android-Einstellungen " +
+                        "eine Sperre einrichten, dann auf Entsperren tippen.",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp
+                )
+            }
             Button(onClick = onUnlock) {
                 Icon(Icons.Filled.Fingerprint, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(8.dp))
