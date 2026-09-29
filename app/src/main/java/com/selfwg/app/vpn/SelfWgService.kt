@@ -16,6 +16,8 @@ import com.selfwg.app.SelfWgApp
 import com.selfwg.app.data.Prefs
 import com.selfwg.app.data.TunnelStore
 import com.wireguard.android.backend.Tunnel
+import com.wireguard.config.BadConfigException
+import com.wireguard.config.Config
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -58,11 +60,9 @@ class SelfWgService : Service() {
             ACTION_SWITCH -> {
                 // Aktiven Tunnel gewechselt: alten runter, neuen rauf.
                 scope.launch {
-                    runCatching {
-                        TunnelManager.down(null)
-                        val cfg = TunnelStore.activeConfig(this@SelfWgService)
-                        if (cfg != null) TunnelManager.up(cfg)
-                    }
+                    TunnelManager.down(null)
+                    val cfg = activeConfig()
+                    if (cfg != null) TunnelManager.up(cfg)
                 }
             }
             else -> { // ACTION_START
@@ -76,8 +76,19 @@ class SelfWgService : Service() {
     }
 
     private suspend fun ensureUp() {
-        val cfg = runCatching { TunnelStore.activeConfig(this) }.getOrNull() ?: return
-        runCatching { TunnelManager.up(cfg) }
+        val cfg = activeConfig() ?: return
+        TunnelManager.up(cfg)
+    }
+
+    /** Aktive Config; Parse-Fehler werden als CONNECT_FAILED gemeldet,
+     * nicht mehr per runCatching verschluckt. */
+    private fun activeConfig(): Config? {
+        try {
+            return TunnelStore.activeConfig(this)
+        } catch (e: BadConfigException) {
+            TunnelManager.connectFailed(TunnelManager.shortFailureDetail(e))
+            return null
+        }
     }
 
     private fun startWatchdog() {
@@ -106,7 +117,7 @@ class SelfWgService : Service() {
      */
     private suspend fun watchTick() {
         if (!Prefs.isIntendedUp(this)) return
-        val cfg = runCatching { TunnelStore.activeConfig(this) }.getOrNull() ?: return
+        val cfg = activeConfig() ?: return
 
         if (TunnelManager.currentState() != Tunnel.State.UP) {
             runCatching { TunnelManager.up(cfg) }
