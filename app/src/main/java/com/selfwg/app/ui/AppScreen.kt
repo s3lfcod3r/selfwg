@@ -86,6 +86,7 @@ fun AppScreen(
     val state by TunnelManager.state.collectAsStateWithLifecycle()
     val serverIp by TunnelManager.serverIp.collectAsStateWithLifecycle()
     val lastError by TunnelManager.lastError.collectAsStateWithLifecycle()
+    val failureDetail by TunnelManager.failureDetail.collectAsStateWithLifecycle()
 
     var tunnels by remember { mutableStateOf(TunnelStore.list(context)) }
     var activeId by remember { mutableStateOf(TunnelStore.activeId(context)) }
@@ -164,7 +165,7 @@ fun AppScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatusCard(s, state, desiredOn, serverIp, activeTunnel?.name, lastError)
+            StatusCard(s, state, desiredOn, serverIp, activeTunnel?.name, lastError, failureDetail)
 
             if (activeTunnel != null) {
                 ConnectRow(
@@ -371,7 +372,8 @@ private fun StatusCard(
     desiredOn: Boolean,
     serverIp: String?,
     activeName: String?,
-    error: TunnelError?
+    error: TunnelError?,
+    failureDetail: String?
 ) {
     val connected = state == Tunnel.State.UP
     val statusText = when {
@@ -400,10 +402,15 @@ private fun StatusCard(
             val errorText = when (error) {
                 TunnelError.BACKEND_UNAVAILABLE -> s.errBackendUnavailable
                 TunnelError.OP_TIMEOUT -> s.errOpTimeout
+                TunnelError.CONNECT_FAILED -> s.errConnectFailed
                 null -> null
             }
             if (errorText != null) {
                 Text(errorText, fontSize = 13.sp, color = Color(0xFFE5746B))
+            }
+            val detail = if (error == TunnelError.CONNECT_FAILED) failureDetail else null
+            if (detail != null) {
+                Text(detail, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
