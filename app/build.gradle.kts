@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.GradleException
 
 plugins {
     id("com.android.application")
@@ -8,8 +9,8 @@ plugins {
 }
 
 // Release-Signatur aus keystore.properties (liegt im Projekt-Root, NICHT im
-// Repo). Fehlt die Datei, signiert der Release-Build mit dem Debug-Keystore,
-// damit nichts bricht, solange noch kein Release-Key erzeugt wurde.
+// Repo). Fehlt die Datei, bricht der Release-Build ab (gradle.taskGraph.whenReady)
+// statt still mit dem Debug-Keystore zu signieren.
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps = Properties().apply {
     if (keystorePropsFile.exists()) load(FileInputStream(keystorePropsFile))
@@ -47,7 +48,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("self")
+            // Nur "release" — kein Fallback auf den Debug-Keystore "self".
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             signingConfig = signingConfigs.getByName("self")
@@ -65,6 +67,20 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     packaging {
         resources { excludes += setOf("/META-INF/{AL2.0,LGPL2.1}") }
+    }
+}
+
+// Release-Build (assembleRelease / bundleRelease / packageRelease) ohne
+// keystore.properties darf nicht still mit dem Debug-Keystore signieren.
+gradle.taskGraph.whenReady { taskGraph ->
+    val releaseSuffixes = setOf("assembleRelease", "bundleRelease", "packageRelease")
+    val releaseTask = taskGraph.allTasks.find { it.name.endsWithAny(releaseSuffixes) }
+    if (releaseTask != null && !keystorePropsFile.exists()) {
+        throw GradleException(
+            "Release-Build ohne keystore.properties ist nicht erlaubt. " +
+                "Lege ein keystore.properties in den Projekt-Root an " +
+                "(keystore.properties.example als Vorlage) und erneut ausführen."
+        )
     }
 }
 
