@@ -67,6 +67,7 @@ data class Strings(
     // Fehlerzustände (Backend)
     val errBackendUnavailable: String,
     val errOpTimeout: String,
+    val errConnectFailed: String,
     // Toasts
     val tConfigTooBig: String,
     val tInvalidConfig: String,
@@ -117,6 +118,7 @@ object I18n {
         languageTitle = "Sprache",
         errBackendUnavailable = "VPN-Backend nicht verfügbar. Bitte App neu installieren.",
         errOpTimeout = "Verbindung hängt – letzter Versuch abgebrochen.",
+        errConnectFailed = "Verbindung fehlgeschlagen.",
         tConfigTooBig = "Config zu groß", tInvalidConfig = "Ungültige Config – bitte prüfen.",
         tFileTooBig = "Datei zu groß", tFileError = "Datei konnte nicht gelesen werden.",
         tAdded = "Tunnel hinzugefügt", tSaved = "Gespeichert", tDeleted = "Gelöscht",
@@ -159,6 +161,7 @@ object I18n {
         languageTitle = "Language",
         errBackendUnavailable = "VPN backend unavailable. Please reinstall the app.",
         errOpTimeout = "Connection stalled – last attempt aborted.",
+        errConnectFailed = "Connection failed.",
         tConfigTooBig = "Config too large", tInvalidConfig = "Invalid config – please check.",
         tFileTooBig = "File too large", tFileError = "Could not read file.",
         tAdded = "Tunnel added", tSaved = "Saved", tDeleted = "Deleted",
