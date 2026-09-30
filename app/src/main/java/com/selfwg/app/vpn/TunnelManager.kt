@@ -78,17 +78,16 @@ object TunnelManager {
     suspend fun up(config: Config) = withContext(Dispatchers.IO) {
         opMutex.withLock {
             // Timeout, damit ein hängender nativer Aufruf nicht opMutex dauerhaft blockiert.
-            val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
-                runInterruptible {
-                    try {
-                        rawUp(config)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        connectFailed(shortFailureDetail(e))
-                    }
+            val ok = try {
+                withTimeoutOrNull(OP_TIMEOUT_MS) {
+                    runInterruptible { rawUp(config) }
+                    true
                 }
-                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                connectFailed(shortFailureDetail(e))
+                return@withLock
             }
             if (ok == null) onOpTimeout("up")
         }
@@ -107,19 +106,18 @@ object TunnelManager {
     /** Tunnel komplett neu aufbauen (z.B. nach Server-IP-Wechsel). Atomar. */
     suspend fun reconnect(config: Config) = withContext(Dispatchers.IO) {
         opMutex.withLock {
-            val ok = withTimeoutOrNull(OP_TIMEOUT_MS) {
-                runInterruptible {
-                    try {
-                        rawDown(config)
-                        delay(400)
-                        rawUp(config)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        connectFailed(shortFailureDetail(e))
-                    }
+            val ok = try {
+                withTimeoutOrNull(OP_TIMEOUT_MS) {
+                    runInterruptible { rawDown(config) }
+                    delay(400)
+                    runInterruptible { rawUp(config) }
+                    true
                 }
-                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                connectFailed(shortFailureDetail(e))
+                return@withLock
             }
             if (ok == null) onOpTimeout("reconnect")
         }
@@ -140,7 +138,7 @@ object TunnelManager {
     /** Kurze, UI-taugliche Fehlerart: nur Klassenname oder Backend-/BadConfig-Reason.
      * Keine Config-Inhalte oder Schlüssel. */
     fun shortFailureDetail(e: Exception): String = when (e) {
-        is BackendException -> e.reason
+        is BackendException -> e.reason.name
         is BadConfigException -> "${e.section} (${e.location}): ${e.reason}"
         else -> e::class.simpleName ?: "Fehler"
     }
