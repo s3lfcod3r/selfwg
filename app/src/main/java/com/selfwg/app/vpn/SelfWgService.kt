@@ -54,6 +54,7 @@ class SelfWgService : Service() {
                 return START_NOT_STICKY
             }
             ACTION_CHECK -> {
+                scope.launch { watchTick() }
                 // Nach Doze-Alarm: Wächter-Schleife wieder starten, wenn der
                 // Tunnel an sein soll. startWatchdog() startet sie nur einmal
                 // (watchJob?.isActive), das bleibt so.
