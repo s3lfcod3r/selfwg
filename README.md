@@ -6,7 +6,7 @@
 **Standalone WireGuard® client for Android with an auto-reconnect watchdog — survives the daily ISP IP change, so your tunnel just stays up.**
 
 [![Download](https://img.shields.io/badge/download-latest%20APK-33A78C?logo=android&logoColor=white)](../../releases/latest)
-![Version](https://img.shields.io/badge/version-1.2.3-33A78C)
+![Version](https://img.shields.io/badge/version-1.2.4-33A78C)
 ![License](https://img.shields.io/badge/license-GPL--2.0-8A9CAA)
 ![Stack](https://img.shields.io/badge/stack-Kotlin%20%C2%B7%20Compose-43D3AD)
 ![Platform](https://img.shields.io/badge/platform-Android%208%2B-9DBDD0)
