@@ -1,6 +1,7 @@
 import java.io.FileInputStream
 import java.util.Properties
-import org.gradle.GradleException
+import org.gradle.api.Action
+import org.gradle.api.execution.TaskExecutionGraph
 
 plugins {
     id("com.android.application")
@@ -72,17 +73,19 @@ android {
 
 // Release-Build (assembleRelease / bundleRelease / packageRelease) ohne
 // keystore.properties darf nicht still mit dem Debug-Keystore signieren.
-gradle.taskGraph.whenReady { taskGraph ->
-    val releaseSuffixes = setOf("assembleRelease", "bundleRelease", "packageRelease")
-    val releaseTask = taskGraph.allTasks.find { it.name.endsWithAny(releaseSuffixes) }
-    if (releaseTask != null && !keystorePropsFile.exists()) {
-        throw GradleException(
-            "Release-Build ohne keystore.properties ist nicht erlaubt. " +
-                "Lege ein keystore.properties in den Projekt-Root an " +
-                "(keystore.properties.example als Vorlage) und erneut ausführen."
-        )
+gradle.taskGraph.whenReady(object : Action<TaskExecutionGraph> {
+    override fun execute(graph: TaskExecutionGraph) {
+        val releaseTasks = setOf("assembleRelease", "bundleRelease", "packageRelease")
+        val isReleaseBuild = graph.allTasks.any { it.name in releaseTasks }
+        if (isReleaseBuild && !keystorePropsFile.exists()) {
+            throw GradleException(
+                "Release-Build ohne keystore.properties ist nicht erlaubt. " +
+                    "Lege ein keystore.properties in den Projekt-Root an " +
+                    "(keystore.properties.example als Vorlage) und erneut ausführen."
+            )
+        }
     }
-}
+})
 
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
