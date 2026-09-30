@@ -26,8 +26,8 @@ android {
         // targetSdk 34: vermeidet das erzwungene Edge-to-Edge von Android 15,
         // damit die System-Navigationsleiste nicht ueber der App liegt.
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.2.4"
+        versionCode = 8
+        versionName = "1.2.5"
     }
     signingConfigs {
         // Debug-Keystore (Passwort "android" ist Android-Standard, kein Secret).
