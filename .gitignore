@@ -15,3 +15,6 @@ keystore.properties
 .idea/
 *.iml
 .DS_Store
+
+# Android-Quellcode: nur lokal, NICHT pushen
+/_android-src/
