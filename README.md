@@ -7,7 +7,7 @@
 
 [![Download](https://img.shields.io/badge/download-latest%20APK-33A78C?logo=android&logoColor=white)](../../releases/latest)
 ![Version](https://img.shields.io/badge/version-1.2.5-33A78C)
-![License](https://img.shields.io/badge/license-GPL--2.0-8A9CAA)
+![License](https://img.shields.io/badge/license-All%20rights%20reserved-8A9CAA)
 ![Stack](https://img.shields.io/badge/stack-Kotlin%20%C2%B7%20Compose-43D3AD)
 ![Platform](https://img.shields.io/badge/platform-Android%208%2B-9DBDD0)
 
@@ -93,6 +93,24 @@ APK: `app/build/outputs/apk/release/app-release.apk`. Stack: Kotlin, Jetpack Com
 
 ---
 
-## License
+## ⚖️ Lizenz / License
 
-GPL-2.0 — this project uses the WireGuard® library and is therefore licensed under **GPL-2.0**. "WireGuard" is a registered trademark of Jason A. Donenfeld. SelfWG is an independent project and is not affiliated with the WireGuard project.
+**🇩🇪 Alle Rechte vorbehalten.** © 2026 s3lfcod3r / SelfCoder
+
+Du darfst die Software **privat und nicht-kommerziell** installieren und benutzen (z. B. im Homelab, über Docker oder Unraid).
+
+**Ohne schriftliche Erlaubnis verboten:** kommerzielle Nutzung · Kopieren · Verändern · Weitergeben · Einbauen in eigene Projekte (auch Closed Source) · Verkaufen.
+
+Die WireGuard®-Tunnel-Bibliothek bleibt unter Apache-2.0. „WireGuard“ ist eine eingetragene Marke von Jason A. Donenfeld; SelfWG ist nicht mit dem WireGuard-Projekt verbunden.
+
+Details: [LICENSE](LICENSE)
+
+**🇬🇧 All rights reserved.** © 2026 s3lfcod3r / SelfCoder
+
+You may install and use the software **privately and non-commercially** (e.g. in your home lab, via Docker or Unraid).
+
+**Not permitted without written permission:** commercial use · copying · modifying · redistributing · incorporating into other projects (including closed source) · selling.
+
+The WireGuard® tunnel library stays under Apache-2.0. "WireGuard" is a registered trademark of Jason A. Donenfeld; SelfWG is not affiliated with the WireGuard project.
+
+Details: [LICENSE](LICENSE)
