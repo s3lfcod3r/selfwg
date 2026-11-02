@@ -6,6 +6,8 @@ import com.selfwg.app.data.Prefs
 /** Alle sichtbaren Texte – zweisprachig (DE/EN). */
 data class Strings(
     val settings: String,
+    val kofi: String,
+    val kofiSub: String,
     val done: String,
     val cancel: String,
     val save: String,
@@ -83,6 +85,8 @@ object I18n {
 
     private val DE = Strings(
         settings = "Einstellungen", done = "Fertig", cancel = "Abbrechen", save = "Speichern",
+        kofi = "Auf Ko-fi unterstützen",
+        kofiSub = "SelfWG ist kostenlos und werbefrei. Wenn dir die App hilft, freue ich mich über einen Kaffee.",
         next = "Weiter", delete = "Löschen",
         connected = "Verbunden", connecting = "Verbindet …", disconnected = "Getrennt",
         tunnelLabel = "Tunnel", serverLabel = "Server", tunnelActive = "Tunnel aktiv", tunnelOff = "Tunnel aus",
@@ -126,6 +130,8 @@ object I18n {
 
     private val EN = Strings(
         settings = "Settings", done = "Done", cancel = "Cancel", save = "Save",
+        kofi = "Support on Ko-fi",
+        kofiSub = "SelfWG is free and ad-free. If the app helps you, a coffee is always appreciated.",
         next = "Next", delete = "Delete",
         connected = "Connected", connecting = "Connecting …", disconnected = "Disconnected",
         tunnelLabel = "Tunnel", serverLabel = "Server", tunnelActive = "Tunnel active", tunnelOff = "Tunnel off",
