@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -55,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +74,9 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 private const val MAX_CONFIG_BYTES = 16 * 1024
+
+/** Ko-fi-Seite zum Unterstützen. Öffnet sich im Browser, die App selbst lädt nichts. */
+private const val KOFI_URL = "https://ko-fi.com/s3lfcod3r"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,6 +100,7 @@ fun AppScreen(
     var showImport by remember { mutableStateOf(false) }
     var showPaste by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
     var pendingConf by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<TunnelEntry?>(null) }
     var deleting by remember { mutableStateOf<TunnelEntry?>(null) }
@@ -146,6 +152,9 @@ fun AppScreen(
             TopAppBar(
                 title = { SelfWgWordmark(22.sp) },
                 actions = {
+                    IconButton(onClick = { runCatching { uriHandler.openUri(KOFI_URL) } }) {
+                        Icon(Icons.Filled.Coffee, contentDescription = s.kofi)
+                    }
                     IconButton(onClick = { showSettings = true }) {
                         Icon(Icons.Filled.Settings, contentDescription = s.settings)
                     }
@@ -341,6 +350,16 @@ fun AppScreen(
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Text(
+                        s.kofiSub,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    TextButton(onClick = { runCatching { uriHandler.openUri(KOFI_URL) } }) {
+                        Icon(Icons.Filled.Coffee, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(8.dp))
+                        Text(s.kofi)
+                    }
                 }
             },
             confirmButton = { TextButton(onClick = { showSettings = false }) { Text(s.done) } }
