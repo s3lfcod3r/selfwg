@@ -26,7 +26,7 @@
 
 **SelfWG** is a lightweight, standalone VPN client that speaks the WireGuard® protocol. It solves one concrete everyday problem: residential internet lines usually rotate their public IP once a day (forced reconnect). After that, the official WireGuard app does **not** re-resolve the server hostname on its own — the tunnel sits dead until you toggle it off and on by hand. SelfWG fixes exactly that. It is a client only — it does not run a VPN server.
 
-Part of the **Self** family (SelfMailer, SelfStream, SelfArchiver, SelfDashboard …) — same design system, same style.
+Part of the **Self** family (SelfMailer, SelfArchiver, SelfDashboard …) — same design system, same style.
 
 > **TL;DR** — auto-reconnect after IP change · multiple tunnels · per-app split tunnel · QR import · fingerprint lock · no telemetry
 
@@ -137,7 +137,7 @@ APK: `app/build/outputs/apk/release/app-release.apk`. A new GitHub release trigg
 
 **SelfWG** ist ein schlanker, eigenständiger VPN-Client, der das WireGuard®-Protokoll nutzt. Er löst ein konkretes Alltagsproblem: Private Internetanschlüsse wechseln ihre öffentliche IP meist einmal täglich (Zwangstrennung). Danach löst die offizielle WireGuard-App den Server-Namen **nicht** von selbst neu auf — der Tunnel bleibt tot, bis man ihn von Hand aus- und wieder einschaltet. Genau das behebt SelfWG. Es ist nur ein Client — einen VPN-Server betreibt es nicht.
 
-Teil der **Self**-Familie (SelfMailer, SelfStream, SelfArchiver, SelfDashboard …) — gleiches Design-System, gleicher Stil.
+Teil der **Self**-Familie (SelfMailer, SelfArchiver, SelfDashboard …) — gleiches Design-System, gleicher Stil.
 
 > **Kurz** — Auto-Reconnect nach IP-Wechsel · mehrere Tunnel · Split-Tunnel pro App · QR-Import · Fingerabdruck-Sperre · keine Telemetrie
 
